@@ -2,59 +2,35 @@
 
 Ansible module for getting volume facts.
 
-```json
-[
-    {
-        "object_id":  "{1}\\\\LP\\root/Microsoft/Windows/Storage/Providers_v2\\WSP_Volume.ObjectId=\"{d2f53c32-f656-11e7-82d4-806e6f6e6963}:VO:\\\\?\\Volume{6732978e-0000-
-0000-0000-100000000000}\\\"",
-        "friendly_name":  "System Reserved",
-        "serial_number":  3001733236,
-        "drive_letter":  null,
-        "system_volume":  true,
-        "drive_type":  3,
-        "device_id":  "\\\\?\\Volume{6732978e-0000-0000-0000-100000000000}\\",
-        "operational_status":  "OK",
-        "file_system_type":  "NTFS",
-        "quotas_rebuilding":  false,
-        "block_size":  4096,
-        "boot_volume":  false,
-        "health_status":  "Healthy",
-        "size":  524283904,
-        "maximum_file_name_length":  255,
-        "automount":  true,
-        "page_file_present":  false,
-        "supports_disk_quotas":  true,
-        "supports_file_based_compression":  true,
-        "quotas_enabled":  false,
-        "size_remaining":  138530816,
-        "quotas_incomplete":  false,
-        "dedup_mode":  "NotAvailable"
-    },
-    {
-        "object_id":  "{1}\\\\LP\\root/Microsoft/Windows/Storage/Providers_v2\\WSP_Volume.ObjectId=\"{d2f53c32-f656-11e7-82d4-806e6f6e6963}:VO:\\\\?\\Volume{6732978e-0000-
-0000-0000-501f00000000}\\\"",
-        "friendly_name":  "Windows",
-        "serial_number":  1861003929,
-        "drive_letter":  "C",
-        "system_volume":  false,
-        "drive_type":  3,
-        "device_id":  "\\\\?\\Volume{6732978e-0000-0000-0000-501f00000000}\\",
-        "operational_status":  "OK",
-        "file_system_type":  "NTFS",
-        "quotas_rebuilding":  false,
-        "block_size":  4096,
-        "boot_volume":  true,
-        "health_status":  "Healthy",
-        "size":  499581448192,
-        "maximum_file_name_length":  255,
-        "automount":  true,
-        "page_file_present":  true,
-        "supports_disk_quotas":  true,
-        "supports_file_based_compression":  true,
-        "quotas_enabled":  false,
-        "size_remaining":  413609037824,
-        "quotas_incomplete":  false,
-        "dedup_mode":  "NotAvailable"
-    }
-]
+- Works for Windows 2003 and over. Doesn't display `dedup_mode`, `health_status`, `operational_status` and `object_id` for legacy systems however. Anything older than 2012 is deemed legacy.
+
+  This is because the module uses the `MSFT_Volume` class to get these values, and they were added with `Get-Volume` I think.
+  
+- The `device_id` value can be used further to format or remove volumes.
+
+```yaml
+  ansible_facts.win_volumes[0]:
+    automount: true
+    block_size: 4096
+    boot_volume: true
+    dedup_mode: null
+    device_id: \\?\Volume{d2962143-4637-11e8-822a-806e6f6e6963}\
+    drive_letter: C
+    drive_type: 3
+    file_system_type: NTFS
+    friendly_name: null
+    health_status: null
+    maximum_file_name_length: 255
+    object_id: null
+    operational_status: null
+    page_file_present: true
+    quotas_enabled: false
+    quotas_incomplete: false
+    quotas_rebuilding: false
+    serial_number: 3831722921
+    size: 53684989952
+    size_remaining: 32338526208
+    supports_disk_quotas: true
+    supports_file_based_compression: true
+    system_volume: true
 ```
