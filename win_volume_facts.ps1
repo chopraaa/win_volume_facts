@@ -25,10 +25,22 @@ $result = @{
     }
 }
 
-try {
-    $msft_volume_info = Get-CimInstance -Namespace ROOT/Microsoft/Windows/Storage -ClassName MSFT_Volume
-} catch {
-    Fail-Json -obj $result -message "Failed to get volumes on the target: $($_.Exception.Message)"
+function Test-LegacyOS {
+    $OSVersion = [System.Environment]::OSVersion.Version
+    if ($OSVersion.Major -ge 6 -and $OSVersion.Minor -ge 2) {
+        return $false
+    }
+    else {
+        return $true
+    }
+}
+
+if (-not (Test-LegacyOS)) {
+    try {
+        $msft_volume_info = Get-CimInstance -Namespace ROOT/Microsoft/Windows/Storage -ClassName MSFT_Volume
+    } catch {
+        Fail-Json -obj $result -message "Failed to get volumes on the target: $($_.Exception.Message)"
+    }
 }
 
 try {
@@ -40,11 +52,31 @@ try {
 $volume_data = @()
 foreach ($item in $win32_volume_info) {
     $win_volume = @{
-        health_status = ($msft_volume_info | Where-Object { $_.UniqueId -eq $item.DeviceId } | Select HealthStatus).HealthStatus
-        operational_status = ($msft_volume_info | Where-Object { $_.UniqueId -eq $item.DeviceId } | Select OperationalStatus).OperationalStatus
-        drive_letter = ($msft_volume_info | Where-Object { $_.UniqueId -eq $item.DeviceId } | Select DriveLetter).DriveLetter
-        dedup_mode = ($msft_volume_info | Where-Object { $_.UniqueId -eq $item.DeviceId } | Select DedupMode).DedupMode
-        object_id = ($msft_volume_info | Where-Object { $_.UniqueId -eq $item.DeviceId } | Select ObjectId).ObjectId
+        health_status = if (-not (Test-LegacyOS)) {
+            ($msft_volume_info | Where-Object { $_.UniqueId -eq $item.DeviceId } | Select HealthStatus).HealthStatus
+        }
+        else {
+            $null
+        }
+        operational_status = if (-not (Test-LegacyOS)) {
+            ($msft_volume_info | Where-Object { $_.UniqueId -eq $item.DeviceId } | Select OperationalStatus).OperationalStatus
+        }
+        else {
+            $null
+        }
+        dedup_mode = if (-not (Test-LegacyOS)) {
+            ($msft_volume_info | Where-Object { $_.UniqueId -eq $item.DeviceId } | Select DedupMode).DedupMode
+        }
+        else {
+            $null
+        }
+        object_id = if (-not (Test-LegacyOS)) {
+            ($msft_volume_info | Where-Object { $_.UniqueId -eq $item.DeviceId } | Select ObjectId).ObjectId
+        }
+        else {
+            $null
+        }
+        drive_letter = $item.DriveLetter.Substring(0,1)
         size = $item.Capacity
         size_remaining = $item.FreeSpace
         device_id = $item.DeviceID
