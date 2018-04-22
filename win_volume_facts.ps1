@@ -21,7 +21,7 @@ if (-not (Test-Admin)) {
 $result = @{
     changed = $false
     ansible_facts = @{
-        ansible_disks = @()
+        ansible_os_volumes = @()
     }
 }
 
@@ -40,21 +40,11 @@ try {
 $volume_data = @()
 foreach ($item in $win32_volume_info) {
     $win_volume = @{
-        health_status = ($msft_volume_info | Where-Object {
-            $_.UniqueId -eq $item.DeviceId
-            } | Select HealthStatus).HealthStatus
-        operational_status = ($msft_volume_info | Where-Object {
-            $_.UniqueId -eq $item.DeviceId
-            } | Select OperationalStatus).OperationalStatus
-        drive_letter = ($msft_volume_info | Where-Object {
-            $_.UniqueId -eq $item.DeviceId
-            } | Select DriveLetter).DriveLetter
-        dedup_mode = ($msft_volume_info | Where-Object {
-            $_.UniqueId -eq $item.DeviceID
-            } | Select DedupMode).DedupMode
-        object_id = ($msft_volume_info | Where-Object {
-            $_.UniqueId -eq $item.DeviceID
-            } | Select ObjectId).ObjectId
+        health_status = ($msft_volume_info | Where-Object { $_.UniqueId -eq $item.DeviceId } | Select HealthStatus).HealthStatus
+        operational_status = ($msft_volume_info | Where-Object { $_.UniqueId -eq $item.DeviceId } | Select OperationalStatus).OperationalStatus
+        drive_letter = ($msft_volume_info | Where-Object { $_.UniqueId -eq $item.DeviceId } | Select DriveLetter).DriveLetter
+        dedup_mode = ($msft_volume_info | Where-Object { $_.UniqueId -eq $item.DeviceId } | Select DedupMode).DedupMode
+        object_id = ($msft_volume_info | Where-Object { $_.UniqueId -eq $item.DeviceId } | Select ObjectId).ObjectId
         size = $item.Capacity
         size_remaining = $item.FreeSpace
         device_id = $item.DeviceID
@@ -77,6 +67,6 @@ foreach ($item in $win32_volume_info) {
     $volume_data += $win_volume
 }
 
-$result.ansible_facts.ansible_volumes += $volume_data
+$result.ansible_facts.ansible_os_volumes += $volume_data
 
 Exit-Json -obj $result
