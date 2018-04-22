@@ -21,7 +21,7 @@ if (-not (Test-Admin)) {
 $result = @{
     changed = $false
     ansible_facts = @{
-        ansible_os_volumes = @()
+        ansible_win_volumes = @()
     }
 }
 
@@ -67,6 +67,6 @@ foreach ($item in $win32_volume_info) {
     $volume_data += $win_volume
 }
 
-$result.ansible_facts.ansible_os_volumes += $volume_data
+$result.ansible_facts.ansible_win_volumes += $volume_data
 
 Exit-Json -obj $result
