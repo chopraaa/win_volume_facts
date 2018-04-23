@@ -21,25 +21,7 @@ if (-not (Test-Admin)) {
 $result = @{
     changed = $false
     ansible_facts = @{
-        ansible_win_volumes = @()
-    }
-}
-
-function Test-LegacyOS {
-    $OSVersion = [System.Environment]::OSVersion.Version
-    if ($OSVersion.Major -ge 6 -and $OSVersion.Minor -ge 2) {
-        return $false
-    }
-    else {
-        return $true
-    }
-}
-
-if (-not (Test-LegacyOS)) {
-    try {
-        $msft_volume_info = Get-CimInstance -Namespace ROOT/Microsoft/Windows/Storage -ClassName MSFT_Volume
-    } catch {
-        Fail-Json -obj $result -message "Failed to get volumes on the target: $($_.Exception.Message)"
+        ansible_win_volume = @()
     }
 }
 
@@ -52,53 +34,29 @@ try {
 $volume_data = @()
 foreach ($item in $win32_volume_info) {
     $win_volume = @{
-        health_status = if (-not (Test-LegacyOS)) {
-            ($msft_volume_info | Where-Object { $_.UniqueId -eq $item.DeviceId } | Select HealthStatus).HealthStatus
-        }
-        else {
-            $null
-        }
-        operational_status = if (-not (Test-LegacyOS)) {
-            ($msft_volume_info | Where-Object { $_.UniqueId -eq $item.DeviceId } | Select OperationalStatus).OperationalStatus
-        }
-        else {
-            $null
-        }
-        dedup_mode = if (-not (Test-LegacyOS)) {
-            ($msft_volume_info | Where-Object { $_.UniqueId -eq $item.DeviceId } | Select DedupMode).DedupMode
-        }
-        else {
-            $null
-        }
-        object_id = if (-not (Test-LegacyOS)) {
-            ($msft_volume_info | Where-Object { $_.UniqueId -eq $item.DeviceId } | Select ObjectId).ObjectId
-        }
-        else {
-            $null
-        }
-        drive_letter = $item.DriveLetter.Substring(0,1)
-        size = $item.Capacity
-        size_remaining = $item.FreeSpace
-        device_id = $item.DeviceID
-        block_size = $item.BlockSize
-        automount = $item.Automount
-        boot_volume = $item.BootVolume
-        drive_type = $item.DriveType
-        file_system_type = $item.FileSystem
-        friendly_name = $item.Label
-        maximum_file_name_length = $item.MaximumFileNameLength
-        page_file_present = $item.PageFilePresent
-        quotas_enabled = $item.QuotasEnabled
-        quotas_incomplete = $item.QuotasIncomplete
-        quotas_rebuilding = $item.QuotasRebuilding
-        serial_number = $item.SerialNumber
-        supports_disk_quotas = $item.SupportsDiskQuotas
-        supports_file_based_compression = $item.SupportsFileBasedCompression
-        system_volume = $item.SystemVolume
+      automount = $item.Automount
+      block_size = $item.BlockSize
+      boot_volume = $item.BootVolume
+      device_id = $item.DeviceID
+      drive_letter = $item.DriveLetter.Substring(0,1)
+      drive_type = $item.DriveType
+      label = $item.Label
+      maximum_file_name_length = $item.MaximumFileNameLength
+      page_file_present = $item.PageFilePresent
+      quotas_enabled = $item.QuotasEnabled
+      quotas_incomplete = $item.QuotasIncomplete
+      quotas_rebuilding = $item.QuotasRebuilding
+      serial_number = $item.SerialNumber
+      size = $item.Capacity
+      size_remaining = $item.FreeSpace
+      supports_disk_quotas = $item.SupportsDiskQuotas
+      supports_file_based_compression = $item.SupportsFileBasedCompression
+      system_volume = $item.SystemVolume
+      type = $item.FileSystem
     }
     $volume_data += $win_volume
 }
 
-$result.ansible_facts.ansible_win_volumes += $volume_data
+$result.ansible_facts.ansible_win_volume += $volume_data
 
 Exit-Json -obj $result
